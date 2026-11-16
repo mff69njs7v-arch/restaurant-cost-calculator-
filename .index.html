@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Restaurant Cost Calculator</title>
+<style>
+body{font-family:Arial;background:#f3f4f6;margin:0;padding:18px;color:#222}
+.container{max-width:600px;margin:auto}
+h2{text-align:center;color:#173b55}
+.card{background:white;padding:16px;border-radius:12px;margin:12px 0;box-shadow:0 2px 8px #0001}
+label{display:block;margin:12px 0 6px;font-weight:bold}
+input,textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px}
+textarea{min-height:75px}
+button{border:0;border-radius:8px;padding:12px;background:#173b55;color:white;font-size:16px;margin-top:10px;width:100%}
+.remove{background:#b83232}
+.result{font-size:20px;font-weight:bold;color:#16734a;text-align:center}
+.item{border:1px solid #ddd;padding:10px;border-radius:8px;margin:10px 0}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>🍽️ حساب تكاليف الأطباق</h2>
+<div class="card">
+<label>اسم الطبق</label>
+<input id="dish" placeholder="اسم الطبق">
+<label>التفاصيل (المكونات والأوزان)</label>
+<textarea id="details" placeholder="مثال: أرز 200g، دجاج 150g..."></textarea>
+<label>ثمن التكلفة (MAD)</label>
+<input id="cost" type="number" step="0.01" placeholder="0.00">
+<label>ثمن البيع (MAD)</label>
+<input id="price" type="number" step="0.01" placeholder="0.00">
+<label>ملاحظات</label>
+<textarea id="notes" placeholder="ملاحظاتك هنا"></textarea>
+<button onclick="saveDish()">حفظ الطبق</button>
+</div>
+<div class="card">
+<div class="result" id="result">الربح: 0.00 MAD</div>
+</div>
+<div class="card">
+<h3>الأطباق المحفوظة</h3>
+<div id="saved"></div>
+</div>
+</div>
+<script>
+let dishes=JSON.parse(localStorage.getItem("dishes")||"[]");
+function calculate(){
+let c=Number(document.getElementById("cost").value)||0;
+let p=Number(document.getElementById("price").value)||0;
+document.getElementById("result").textContent="الربح: "+(p-c).toFixed(2)+" MAD";
+}
+document.getElementById("cost").addEventListener("input",calculate);
+document.getElementById("price").addEventListener("input",calculate);
+function saveDish(){
+let dish=document.getElementById("dish").value.trim();
+if(!dish){alert("أدخل اسم الطبق");return}
+dishes.push({
+dish,
+details:document.getElementById("details").value,
+cost:document.getElementById("cost").value,
+price:document.getElementById("price").value,
+notes:document.getElementById("notes").value
+});
+localStorage.setItem("dishes",JSON.stringify(dishes));
+render();
+alert("تم حفظ الطبق");
+}
+function render(){
+document.getElementById("saved").innerHTML="";
+dishes.forEach((d,i)=>{
+let div=document.createElement("div");
+div.className="item";
+let title=document.createElement("b");
+title.textContent=d.dish;
+let info=document.createElement("p");
+info.textContent="التفاصيل: "+d.details+" | التكلفة: "+d.cost+" MAD | البيع: "+d.price+" MAD";
+let note=document.createElement("p");
+note.textContent="ملاحظات: "+d.notes;
+let del=document.createElement("button");
+del.className="remove";
+del.textContent="حذف";
+del.onclick=()=>{dishes.splice(i,1);localStorage.setItem("dishes",JSON.stringify(dishes));render()};
+div.append(title,info,note,del);
+document.getElementById("saved").append(div);
+});
+}
+render();
+</script>
+</body>
+</html>
