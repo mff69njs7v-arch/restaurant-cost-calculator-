@@ -4,88 +4,296 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#173b55">
 <title>Restaurant Cost Calculator</title>
+
 <style>
-body{font-family:Arial;background:#f3f4f6;margin:0;padding:18px;color:#222}
-.container{max-width:600px;margin:auto}
-h2{text-align:center;color:#173b55}
-.card{background:white;padding:16px;border-radius:12px;margin:12px 0;box-shadow:0 2px 8px #0001}
-label{display:block;margin:12px 0 6px;font-weight:bold}
-input,textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px}
-textarea{min-height:75px}
-button{border:0;border-radius:8px;padding:12px;background:#173b55;color:white;font-size:16px;margin-top:10px;width:100%}
-.remove{background:#b83232}
-.result{font-size:20px;font-weight:bold;color:#16734a;text-align:center}
-.item{border:1px solid #ddd;padding:10px;border-radius:8px;margin:10px 0}
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f3f4f6;
+  margin: 0;
+  padding: 18px;
+  color: #222;
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+}
+
+h2 {
+  text-align: center;
+  color: #173b55;
+}
+
+.card {
+  background: white;
+  padding: 18px;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px #0000000d;
+}
+
+label {
+  display: block;
+  margin: 13px 0 7px;
+  font-weight: bold;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: Arial;
+}
+
+textarea {
+  min-height: 75px;
+  resize: vertical;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 13px;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 12px;
+  color: white;
+  background: #173b55;
+}
+
+.profit {
+  background: #e8f5ed;
+  color: #168044;
+  padding: 15px;
+  border-radius: 9px;
+  text-align: center;
+  font-size: 19px;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+.item {
+  border: 1px solid #ddd;
+  padding: 13px;
+  border-radius: 10px;
+  margin-top: 12px;
+  background: #fff;
+  overflow-wrap: anywhere;
+}
+
+.item h3 {
+  color: #173b55;
+  margin-top: 0;
+}
+
+.item p {
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.remove {
+  background: #b83232;
+}
+
+.empty {
+  text-align: center;
+  color: #888;
+  padding: 15px;
+}
+
+.small {
+  color: #666;
+  font-size: 14px;
+}
 </style>
 </head>
+
 <body>
 <div class="container">
-<h2>🍽️ حساب تكاليف الأطباق</h2>
+
+<h2>Restaurant Cost Calculator</h2>
+
 <div class="card">
+
 <label>اسم الطبق</label>
-<input id="dish" placeholder="اسم الطبق">
+<input id="dishName" type="text" placeholder="اسم الطبق">
+
 <label>التفاصيل (المكونات والأوزان)</label>
-<textarea id="details" placeholder="مثال: أرز 200g، دجاج 150g..."></textarea>
-<label>ثمن التكلفة (MAD)</label>
-<input id="cost" type="number" step="0.01" placeholder="0.00">
-<label>ثمن البيع (MAD)</label>
-<input id="price" type="number" step="0.01" placeholder="0.00">
+<textarea id="details" placeholder="مثال:
+الأرز: 200g
+الدجاج: 150g
+الخضروات: 100g"></textarea>
+
 <label>ملاحظات</label>
-<textarea id="notes" placeholder="ملاحظاتك هنا"></textarea>
+<textarea id="notes" placeholder="سجل ملاحظاتك هنا..."></textarea>
+
+<label>ثمن التكلفة (MAD)</label>
+<input id="cost" type="number" min="0" step="0.01" placeholder="أدخل ثمن التكلفة">
+
+<label>ثمن البيع (MAD)</label>
+<input id="price" type="number" min="0" step="0.01" placeholder="أدخل ثمن البيع">
+
+<div class="profit" id="profit">
+الربح: 0.00 MAD
+</div>
+
 <button onclick="saveDish()">حفظ الطبق</button>
+
 </div>
+
 <div class="card">
-<div class="result" id="result">الربح: 0.00 MAD</div>
+<h2>الأطباق المحفوظة</h2>
+<div id="dishList"></div>
 </div>
-<div class="card">
-<h3>الأطباق المحفوظة</h3>
-<div id="saved"></div>
+
 </div>
-</div>
+
 <script>
-let dishes=JSON.parse(localStorage.getItem("dishes")||"[]");
-function calculate(){
-let c=Number(document.getElementById("cost").value)||0;
-let p=Number(document.getElementById("price").value)||0;
-document.getElementById("result").textContent="الربح: "+(p-c).toFixed(2)+" MAD";
+const fields = {
+  name: document.getElementById("dishName"),
+  details: document.getElementById("details"),
+  notes: document.getElementById("notes"),
+  cost: document.getElementById("cost"),
+  price: document.getElementById("price")
+};
+
+function money(value) {
+  return Number(value).toFixed(2);
 }
-document.getElementById("cost").addEventListener("input",calculate);
-document.getElementById("price").addEventListener("input",calculate);
-function saveDish(){
-let dish=document.getElementById("dish").value.trim();
-if(!dish){alert("أدخل اسم الطبق");return}
-dishes.push({
-dish,
-details:document.getElementById("details").value,
-cost:document.getElementById("cost").value,
-price:document.getElementById("price").value,
-notes:document.getElementById("notes").value
-});
-localStorage.setItem("dishes",JSON.stringify(dishes));
-render();
-alert("تم حفظ الطبق");
+
+function calculateProfit() {
+  const cost = Number(fields.cost.value) || 0;
+  const price = Number(fields.price.value) || 0;
+  const profit = price - cost;
+
+  document.getElementById("profit").textContent =
+    "الربح: " + money(profit) + " MAD";
 }
-function render(){
-document.getElementById("saved").innerHTML="";
-dishes.forEach((d,i)=>{
-let div=document.createElement("div");
-div.className="item";
-let title=document.createElement("b");
-title.textContent=d.dish;
-let info=document.createElement("p");
-info.textContent="التفاصيل: "+d.details+" | التكلفة: "+d.cost+" MAD | البيع: "+d.price+" MAD";
-let note=document.createElement("p");
-note.textContent="ملاحظات: "+d.notes;
-let del=document.createElement("button");
-del.className="remove";
-del.textContent="حذف";
-del.onclick=()=>{dishes.splice(i,1);localStorage.setItem("dishes",JSON.stringify(dishes));render()};
-div.append(title,info,note,del);
-document.getElementById("saved").append(div);
-});
+
+fields.cost.addEventListener("input", calculateProfit);
+fields.price.addEventListener("input", calculateProfit);
+
+function getDishes() {
+  try {
+    return JSON.parse(localStorage.getItem("restaurantDishes")) || [];
+  } catch {
+    return [];
+  }
 }
-render();
+
+function saveDish() {
+  const name = fields.name.value.trim();
+  const details = fields.details.value.trim();
+  const notes = fields.notes.value.trim();
+  const costValue = fields.cost.value;
+  const priceValue = fields.price.value;
+
+  if (!name || costValue === "" || priceValue === "") {
+    alert("المرجو إدخال اسم الطبق وثمن التكلفة وثمن البيع");
+    return;
+  }
+
+  const cost = Number(costValue);
+  const price = Number(priceValue);
+
+  if (!Number.isFinite(cost) || !Number.isFinite(price) ||
+      cost < 0 || price < 0) {
+    alert("المرجو إدخال أثمنة صحيحة");
+    return;
+  }
+
+  const dishes = getDishes();
+
+  dishes.push({
+    id: Date.now() + Math.random(),
+    name,
+    details,
+    notes,
+    cost,
+    price,
+    profit: price - cost
+  });
+
+  try {
+    localStorage.setItem("restaurantDishes", JSON.stringify(dishes));
+  } catch {
+    alert("تعذر الحفظ في الهاتف");
+    return;
+  }
+
+  fields.name.value = "";
+  fields.details.value = "";
+  fields.notes.value = "";
+  fields.cost.value = "";
+  fields.price.value = "";
+
+  calculateProfit();
+  showDishes();
+
+  alert("تم حفظ الطبق بنجاح");
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
+}
+
+function showDishes() {
+  const dishes = getDishes();
+  const list = document.getElementById("dishList");
+
+  if (dishes.length === 0) {
+    list.innerHTML = '<div class="empty">لا توجد أطباق محفوظة حالياً</div>';
+    return;
+  }
+
+  list.innerHTML = dishes.map(dish => `
+    <div class="item">
+      <h3>${escapeHTML(dish.name)}</h3>
+
+      <p><b>التفاصيل:</b>
+${escapeHTML(dish.details || "لا توجد تفاصيل")}</p>
+
+      <p><b>ملاحظات:</b>
+${escapeHTML(dish.notes || "لا توجد ملاحظات")}</p>
+
+      <p><b>ثمن التكلفة:</b> ${money(dish.cost)} MAD</p>
+      <p><b>ثمن البيع:</b> ${money(dish.price)} MAD</p>
+      <p><b>الربح:</b> ${money(dish.profit)} MAD</p>
+
+      <button class="remove" onclick="deleteDish(${Number(dish.id)})">
+        حذف الطبق
+      </button>
+    </div>
+  `).join("");
+}
+
+function deleteDish(id) {
+  if (!confirm("هل أنت متأكد من حذف هذا الطبق؟")) return;
+
+  const dishes = getDishes().filter(dish => dish.id !== id);
+
+  localStorage.setItem("restaurantDishes", JSON.stringify(dishes));
+  showDishes();
+}
+
+calculateProfit();
+showDishes();
 </script>
+
 </body>
 </html>
